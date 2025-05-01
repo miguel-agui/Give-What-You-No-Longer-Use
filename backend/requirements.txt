@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+python-dotenv
+pydantic
+sqlalchemy
+alembic
+httpx
+azure-ai-textanalytics
+azure-ai-vision
+azure-identity
+azure-keyvault-secrets
+stripe
+PyJWT
+passlib[bcrypt]
+python-multipart
