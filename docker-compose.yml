@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  voice-ai-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: voice-ai-agent
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    restart: unless-stopped
