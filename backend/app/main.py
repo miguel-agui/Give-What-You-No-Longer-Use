@@ -1,17 +1,15 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import user_routes, category_routes, product_routes, transaction_routes, moderation_routes, payment_routes
+from app.models.base import Base
 from app.models import user, product, category, transaction
 from app.services.database import engine
 from sqlalchemy.orm import Session
 from app.services.database import get_db
 from app.auth.auth_handler import get_current_active_admin
 
-# Create database tables
-user.Base.metadata.create_all(bind=engine)
-product.Base.metadata.create_all(bind=engine)
-category.Base.metadata.create_all(bind=engine)
-transaction.Base.metadata.create_all(bind=engine)
+# Create all tables using shared Base
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Circular Economy Platform API",

@@ -3,8 +3,8 @@ import os
 from dotenv import load_dotenv
 from typing import Dict, Any, Optional
 import logging
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
+# from azure.identity import DefaultAzureCredential
+# from azure.keyvault.secrets import SecretClient
 
 # Load environment variables
 load_dotenv()

@@ -1,12 +1,11 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Enum
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from app.models.base import Base
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional
 import enum
 
-Base = declarative_base()
 
 class TransactionStatus(str, enum.Enum):
     PENDING = "pending"

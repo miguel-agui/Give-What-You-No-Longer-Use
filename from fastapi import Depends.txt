@@ -1,0 +1,6 @@
+from fastapi import Depends
+def get_db():
+    # ...return db session...
+@app.post("/donations")
+async def post_donation(data: DonationModel, db=Depends(get_db), user=Depends(get_current_user)):
+    # ...logic...

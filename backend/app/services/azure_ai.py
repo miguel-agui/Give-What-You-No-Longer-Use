@@ -1,8 +1,8 @@
-from azure.ai.textanalytics import TextAnalyticsClient
-from azure.ai.vision import ImageAnalysisClient, ImageAnalysisOptions
-from azure.core.credentials import AzureKeyCredential
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
+# from azure.ai.textanalytics import TextAnalyticsClient
+# from azure.ai.vision import ImageAnalysisClient, ImageAnalysisOptions
+# from azure.core.credentials import AzureKeyCredential
+# from azure.identity import DefaultAzureCredential
+# from azure.keyvault.secrets import SecretClient
 import os
 from dotenv import load_dotenv
 from typing import List, Dict, Any, Optional
