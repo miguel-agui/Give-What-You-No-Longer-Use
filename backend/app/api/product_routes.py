@@ -25,7 +25,7 @@ async def create_new_product(
     current_user: User = Depends(get_current_user)
 ):
     """Create a new product listing"""
-    return create_product(db, product, current_user.id)
+    return create_product(db, product, int(getattr(current_user, "id")))
 
 @router.get("/", response_model=List[ProductRead])
 async def read_products(
@@ -48,7 +48,8 @@ async def patch_product_by_id(
     db_product = get_product(db, product_id)
     if db_product is None:
         raise HTTPException(status_code=404, detail="Product not found")
-    if db_product.user_id != current_user.id and not current_user.is_admin:
+    is_admin = bool(getattr(current_user, "is_admin", False))
+    if db_product.user_id != current_user.id and not is_admin:
         raise HTTPException(status_code=403, detail="Not authorized to update this product")
     return update_product(db, product_id, product)
 
@@ -61,7 +62,7 @@ async def create_products_batch(
     """Create multiple products in a batch operation"""
     created_products = []
     for product in products:
-        created = create_product(db, product, current_user.id)
+        created = create_product(db, product, int(getattr(current_user, "id")))
         created_products.append(created)
     return created_products
 
@@ -116,7 +117,8 @@ async def update_product_by_id(
         raise HTTPException(status_code=404, detail="Product not found")
     
     # Check if the product belongs to the current user
-    if db_product.user_id != current_user.id and not current_user.is_admin:
+    is_admin = getattr(current_user, "is_admin", False)
+    if db_product.user_id != current_user.id and not (is_admin is True or is_admin == True):
         raise HTTPException(status_code=403, detail="Not authorized to update this product")
     
     return update_product(db, product_id, product)
@@ -135,7 +137,7 @@ async def upload_product_image(
         raise HTTPException(status_code=404, detail="Product not found")
     
     # Check if the product belongs to the current user
-    if db_product.user_id != current_user.id and not current_user.is_admin:
+    if db_product.user_id != current_user.id and not (getattr(current_user, "is_admin", False) is True):
         raise HTTPException(status_code=403, detail="Not authorized to update this product")
     
     # Here we would normally upload the image to a storage service like Azure Blob Storage
@@ -164,7 +166,8 @@ async def delete_product(
         raise HTTPException(status_code=404, detail="Product not found")
     
     # Check if the product belongs to the current user
-    if db_product.user_id != current_user.id and not current_user.is_admin:
+    is_admin = getattr(current_user, "is_admin", False)
+    if db_product.user_id != current_user.id and not (is_admin is True or is_admin == True):
         raise HTTPException(status_code=403, detail="Not authorized to delete this product")
     
     # Soft delete by setting is_active to False
