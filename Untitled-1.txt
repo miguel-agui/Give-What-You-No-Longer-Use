@@ -1,0 +1,7 @@
+@router.post("/", response_model=ProductRead)
+async def create_new_product(
+    product: ProductCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # ...logic...

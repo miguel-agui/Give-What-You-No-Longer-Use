@@ -1,0 +1,9 @@
+from pydantic import BaseModel
+class DonationModel(BaseModel):
+    item_id: int
+    quantity: int
+    # ...other fields...
+@app.post("/donations", response_model=DonationModel)
+async def post_donation(data: DonationModel):
+    # ...logic...
+    return data

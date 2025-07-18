@@ -1,11 +1,10 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from app.models.base import Base
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional, List
 
-Base = declarative_base()
 
 class Product(Base):
     __tablename__ = "products"

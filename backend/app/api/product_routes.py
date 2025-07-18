@@ -1,7 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
+from pydantic import BaseModel
 from app.models.product import ProductCreate, ProductRead, ProductUpdate, ProductImageCreate, ProductImageRead
+class ProductFilter(BaseModel):
+    category_id: Optional[int] = None
+    min_price: Optional[float] = None
+    max_price: Optional[float] = None
+    search: Optional[str] = None
+    sort_by: Optional[str] = None
+    is_sold: Optional[bool] = False
+
 from app.services.database import get_db, create_product, get_product, get_products, update_product, add_product_image
 from app.auth.auth_handler import get_current_user
 from app.models.user import User
@@ -16,29 +25,46 @@ async def create_new_product(
     current_user: User = Depends(get_current_user)
 ):
     """Create a new product listing"""
-    return create_product(db, product, current_user.id)
+    return create_product(db, product, int(getattr(current_user, "id")))
 
 @router.get("/", response_model=List[ProductRead])
 async def read_products(
     skip: int = 0,
     limit: int = 100,
-    category_id: Optional[int] = None,
-    min_price: Optional[float] = None,
-    max_price: Optional[float] = None,
-    search: Optional[str] = None,
-    sort_by: Optional[str] = None,
+    filter: ProductFilter = Depends(),
     db: Session = Depends(get_db)
 ):
     """Get all active products with optional filters"""
-    filters = {
-        "category_id": category_id,
-        "min_price": min_price,
-        "max_price": max_price,
-        "search": search,
-        "sort_by": sort_by,
-        "is_sold": False  # By default, only show unsold products
-    }
+    filters = filter.dict(exclude_unset=True)
     return get_products(db, skip=skip, limit=limit, filters=filters)
+@router.patch("/{product_id}", response_model=ProductRead)
+async def patch_product_by_id(
+    product_id: int,
+    product: ProductUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Partially update a product"""
+    db_product = get_product(db, product_id)
+    if db_product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    is_admin = bool(getattr(current_user, "is_admin", False))
+    if db_product.user_id != current_user.id and not is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to update this product")
+    return update_product(db, product_id, product)
+
+@router.post("/batch", response_model=List[ProductRead])
+async def create_products_batch(
+    products: List[ProductCreate],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Create multiple products in a batch operation"""
+    created_products = []
+    for product in products:
+        created = create_product(db, product, int(getattr(current_user, "id")))
+        created_products.append(created)
+    return created_products
 
 @router.get("/user/{user_id}", response_model=List[ProductRead])
 async def read_user_products(
@@ -91,7 +117,8 @@ async def update_product_by_id(
         raise HTTPException(status_code=404, detail="Product not found")
     
     # Check if the product belongs to the current user
-    if db_product.user_id != current_user.id and not current_user.is_admin:
+    is_admin = getattr(current_user, "is_admin", False)
+    if db_product.user_id != current_user.id and not (is_admin is True or is_admin == True):
         raise HTTPException(status_code=403, detail="Not authorized to update this product")
     
     return update_product(db, product_id, product)
@@ -110,7 +137,7 @@ async def upload_product_image(
         raise HTTPException(status_code=404, detail="Product not found")
     
     # Check if the product belongs to the current user
-    if db_product.user_id != current_user.id and not current_user.is_admin:
+    if db_product.user_id != current_user.id and not (getattr(current_user, "is_admin", False) is True):
         raise HTTPException(status_code=403, detail="Not authorized to update this product")
     
     # Here we would normally upload the image to a storage service like Azure Blob Storage
@@ -139,7 +166,8 @@ async def delete_product(
         raise HTTPException(status_code=404, detail="Product not found")
     
     # Check if the product belongs to the current user
-    if db_product.user_id != current_user.id and not current_user.is_admin:
+    is_admin = getattr(current_user, "is_admin", False)
+    if db_product.user_id != current_user.id and not (is_admin is True or is_admin == True):
         raise HTTPException(status_code=403, detail="Not authorized to delete this product")
     
     # Soft delete by setting is_active to False

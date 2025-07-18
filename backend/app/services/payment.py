@@ -43,7 +43,7 @@ def initialize_stripe():
 initialize_stripe()
 
 # Payment functions
-def create_payment_intent(amount: float, currency: str = "usd", metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+def create_payment_intent(amount: float, currency: str = "usd", metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Create a payment intent with Stripe
     
@@ -132,14 +132,26 @@ def create_refund(payment_intent_id: str, amount: Optional[float] = None) -> Dic
     
     try:
         refund_params = {"payment_intent": payment_intent_id}
-        
+
         if amount is not None:
             # Convert float amount to integer cents
             amount_cents = int(amount * 100)
-            refund_params["amount"] = amount_cents
-        
-        refund = stripe.Refund.create(**refund_params)
-        
+            refund_params["amount"] = str(amount_cents)  # Ensure this is a str
+
+        # Only include allowed parameters for stripe.Refund.create and ensure correct types
+        allowed_keys = {"payment_intent", "amount"}
+        filtered_params = {}
+        for k, v in refund_params.items():
+            if k == "amount" and not isinstance(v, int):
+                try:
+                    v = int(v)
+                except Exception:
+                    logger.error(f"Invalid amount value for refund: {v}")
+                    continue
+            filtered_params[k] = v
+
+        refund = stripe.Refund.create(**filtered_params)
+
         return {
             "id": refund.id,
             "amount": refund.amount / 100,  # Convert cents to dollars

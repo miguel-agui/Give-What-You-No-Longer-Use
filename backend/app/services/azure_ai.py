@@ -1,5 +1,5 @@
 from azure.ai.textanalytics import TextAnalyticsClient
-from azure.ai.vision import ImageAnalysisClient, ImageAnalysisOptions
+from azure.ai.vision.imageanalysis import ImageAnalysisClient, ImageAnalysisOptions
 from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
